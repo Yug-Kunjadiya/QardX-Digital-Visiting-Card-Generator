@@ -23,6 +23,14 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.SlidingExpiration = true;
     });
 
+// Add session support for admin authentication
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(2);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 // Add custom services
 builder.Services.AddScoped<IQRCodeService, QRCodeService>();
 builder.Services.AddScoped<IExportService, ExportService>();
@@ -48,6 +56,9 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+// Use session for admin authentication
+app.UseSession();
+
 // Use Authentication and Authorization
 app.UseAuthentication();
 app.UseAuthorization();
@@ -56,7 +67,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Ensure database is created and seeded
+// Ensure database is created
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<QardXDbContext>();

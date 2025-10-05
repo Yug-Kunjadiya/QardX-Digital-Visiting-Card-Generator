@@ -1,0 +1,238 @@
+@model IEnumerable<User>
+@{
+    ViewData["Title"] = "User Management";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-users me-2"></i>User Management</h2>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                        <li class="breadcrumb-item active">Users</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 fw-bold text-primary">All Registered Users</h6>
+                        <div class="text-muted">
+                            <i class="fas fa-users me-1"></i>Total: @Model.Count() users
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model != null && Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Full Name</th>
+                                        <th>Email</th>
+                                        <th>Cards Created</th>
+                                        <th>Joined Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var user in Model)
+                                    {
+                                        <tr>
+                                            <td>@user.UserId</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                        <span class="text-white fw-bold">@user.FullName.First()</span>
+                                                    </div>
+                                                    @user.FullName
+                                                </div>
+                                            </td>
+                                            <td>@user.Email</td>
+                                            <td>
+                                                <span class="badge bg-info">@user.VisitingCards.Count() cards</span>
+                                            </td>
+                                            <td>@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                <span class="badge bg-success">Active</span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    @if (user.VisitingCards.Any())
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                                onclick="viewUserCards(@user.UserId)">
+                                                            <i class="fas fa-id-card"></i> Cards
+                                                        </button>
+                                                    }
+                                                    <button type="button" class="btn btn-sm btn-outline-info" 
+                                                            onclick="viewUserDetails(@user.UserId)">
+                                                        <i class="fas fa-eye"></i> Details
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-users fa-3x mb-3"></i>
+                            <h5>No Users Found</h5>
+                            <p>No users have registered yet.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Details Modal -->
+<div class="modal fade" id="userDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">User Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="userDetailsContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Cards Modal -->
+<div class="modal fade" id="userCardsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">User Cards</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="userCardsContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function viewUserDetails(userId) {
+            // Create simplified user data without circular references
+            const users = [
+                @foreach (var user in Model)
+                {
+                    @:{
+                        @:userId: @user.UserId,
+                        @:fullName: "@Html.Raw(user.FullName)",
+                        @:email: "@Html.Raw(user.Email)",
+                        @:createdAt: "@user.CreatedAt.ToString("yyyy-MM-dd")",
+                        @:cardCount: @user.VisitingCards.Count()
+                    @:},
+                }
+            ];
+            
+            const selectedUser = users.find(u => u.userId === userId);
+            
+            if (selectedUser) {
+                const content = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>User ID:</strong> ${selectedUser.userId}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Full Name:</strong> ${selectedUser.fullName}
+                        </div>
+                        <div class="col-md-6 mt-2">
+                            <strong>Email:</strong> ${selectedUser.email}
+                        </div>
+                        <div class="col-md-6 mt-2">
+                            <strong>Joined:</strong> ${new Date(selectedUser.createdAt).toLocaleDateString()}
+                        </div>
+                        <div class="col-12 mt-2">
+                            <strong>Total Cards:</strong> ${selectedUser.cardCount}
+                        </div>
+                    </div>
+                `;
+                document.getElementById('userDetailsContent').innerHTML = content;
+                new bootstrap.Modal(document.getElementById('userDetailsModal')).show();
+            }
+        }
+
+        function viewUserCards(userId) {
+            // Create simplified card data without circular references
+            const userCards = [
+                @foreach (var user in Model)
+                {
+                    @:{
+                        @:userId: @user.UserId,
+                        @:cards: [
+                            @foreach (var card in user.VisitingCards)
+                            {
+                                @:{
+                                    @:cardId: @card.CardId,
+                                    @:createdAt: "@card.CreatedAt.ToString("yyyy-MM-dd")",
+                                    @:name: "@Html.Raw($"{card.FirstName} {card.LastName}")"
+                                @:},
+                            }
+                        @:]
+                    @:},
+                }
+            ];
+            
+            const selectedUser = userCards.find(u => u.userId === userId);
+            
+            if (selectedUser && selectedUser.cards.length > 0) {
+                let content = '<div class="row">';
+                selectedUser.cards.forEach(card => {
+                    content += `
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">${card.name}</h6>
+                                    <p class="card-text">
+                                        <small class="text-muted">Card #${card.cardId}</small><br>
+                                        <small class="text-muted">Created: ${new Date(card.createdAt).toLocaleDateString()}</small>
+                                    </p>
+                                    <a href="/PublicView/ViewCard/${card.cardId}" class="btn btn-sm btn-primary" target="_blank">
+                                        <i class="fas fa-eye"></i> View Card
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                content += '</div>';
+                document.getElementById('userCardsContent').innerHTML = content;
+            } else {
+                document.getElementById('userCardsContent').innerHTML = '<p class="text-muted">No cards found for this user.</p>';
+            }
+            
+            new bootstrap.Modal(document.getElementById('userCardsModal')).show();
+        }
+    </script>
+
+    <style>
+        .avatar-sm {
+            width: 32px;
+            height: 32px;
+            font-size: 14px;
+        }
+    </style>
+}

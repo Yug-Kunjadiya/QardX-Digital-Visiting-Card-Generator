@@ -1,0 +1,188 @@
+@model AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard</h2>
+                <div class="d-flex align-items-center">
+                    <div class="text-muted me-3">
+                        <i class="fas fa-clock me-1"></i>@DateTime.Now.ToString("MMM dd, yyyy HH:mm")
+                    </div>
+                    <a href="@Url.Action("Logout", "Admin")" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-sign-out-alt me-1"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-start border-primary border-4 shadow h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <div class="text-xs fw-bold text-primary text-uppercase mb-1">Total Users</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">@Model.TotalUsers</div>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-users fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-start border-success border-4 shadow h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <div class="text-xs fw-bold text-success text-uppercase mb-1">Total Cards</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">@Model.TotalCards</div>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-id-card fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-start border-info border-4 shadow h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <div class="text-xs fw-bold text-info text-uppercase mb-1">Templates</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">@Model.TotalTemplates</div>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-palette fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-start border-warning border-4 shadow h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <div class="text-xs fw-bold text-warning text-uppercase mb-1">Active Today</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">@Model.RecentCards.Count()</div>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-chart-line fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 fw-bold text-primary"><i class="fas fa-tools me-2"></i>Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="@Url.Action("Users", "Admin")" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="fas fa-users me-2"></i>Manage Users
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="@Url.Action("Templates", "Admin")" class="btn btn-outline-success btn-sm w-100">
+                                <i class="fas fa-palette me-2"></i>Manage Templates
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="@Url.Action("ContactSubmissions", "Admin")" class="btn btn-outline-info btn-sm w-100">
+                                <i class="fas fa-envelope me-2"></i>Contact Forms
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="@Url.Action("Analytics", "Admin")" class="btn btn-outline-warning btn-sm w-100">
+                                <i class="fas fa-chart-bar me-2"></i>Analytics
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Cards -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 fw-bold text-primary"><i class="fas fa-clock me-2"></i>Recent Cards</h6>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentCards != null && Model.RecentCards.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Card ID</th>
+                                        <th>User</th>
+                                        <th>Template</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var card in Model.RecentCards)
+                                    {
+                                        <tr>
+                                            <td>@card.CardId</td>
+                                            <td>@card.User.FullName</td>
+                                            <td>
+                                                <span class="badge bg-secondary">@card.Template.TemplateName</span>
+                                            </td>
+                                            <td>@card.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                <a href="@Url.Action("ViewCard", "PublicView", new { id = card.CardId })" 
+                                                   class="btn btn-sm btn-outline-primary" target="_blank">
+                                                    <i class="fas fa-eye"></i> View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <p>No recent cards found.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-refresh every 30 seconds
+        setTimeout(function() {
+            location.reload();
+        }, 30000);
+    </script>
+}
