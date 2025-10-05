@@ -167,8 +167,7 @@ QardX-Digital-Visiting-Card-Generator/
 | Card Creator    | <img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/b87b8a89-1002-4a41-aa76-048f174120cf" /> |
 | My Card | <img width="1919" height="681" alt="image" src="https://github.com/user-attachments/assets/e51e9888-ce9a-4829-9e52-a3566f79f3b6" /> |
 | Analytics | <img width="1919" height="867" alt="image" src="https://github.com/user-attachments/assets/2063f25b-b9a3-4b6a-a017-e9f26f17af9d" /> |
-
-| Admin Panel     | ![Admin Panel Screenshot](#) |
+| Admin Panel     | <img width="1919" height="867" alt="image" src="https://github.com/user-attachments/assets/27793cc7-4136-4204-8c0f-35f857240d4f" /> |
 
 ---
 
