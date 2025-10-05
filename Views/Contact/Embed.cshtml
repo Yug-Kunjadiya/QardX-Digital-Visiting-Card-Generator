@@ -1,0 +1,185 @@
+@model VisitingCard
+
+@{
+    ViewBag.Title = "Contact Form - " + Model.FullName;
+    Layout = "_LayoutCard";
+}
+
+<div class="contact-form-page">
+    <div class="card-header text-center">
+        <h2 class="text-primary">@Model.FullName</h2>
+        <p class="text-muted">@Model.JobTitle - @Model.Company</p>
+    </div>
+
+    <div class="contact-form-container">
+        <form id="contactForm" class="contact-form">
+            <h3 class="mb-4 text-center">Get in Touch</h3>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label for="name" class="form-label">Your Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label for="email" class="form-label">Your Email *</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label for="phone" class="form-label">Your Phone</label>
+                        <input type="tel" class="form-control" id="phone" name="phone">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label for="company" class="form-label">Your Company</label>
+                        <input type="text" class="form-control" id="company" name="company">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="message" class="form-label">Your Message *</label>
+                <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+            </div>
+
+            <input type="hidden" id="cardId" value="@Model.CardId">
+            
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary btn-lg px-5">
+                    <i class="fas fa-paper-plane me-2"></i>Send Message
+                </button>
+            </div>
+        </form>
+
+        <div id="messageAlert" class="alert mt-3" style="display: none;"></div>
+    </div>
+</div>
+
+<style>
+    .contact-form-page {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #3456a3, #5478c4);
+        color: white;
+        padding: 30px;
+        border-radius: 15px 15px 0 0;
+        margin-bottom: 0;
+    }
+
+    .contact-form-container {
+        background: white;
+        padding: 40px;
+        border-radius: 0 0 15px 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .contact-form {
+        background: #f8f9fa;
+        padding: 30px;
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
+    }
+
+    .form-control {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+        padding: 12px 15px;
+        transition: border-color 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #3456a3;
+        box-shadow: 0 0 0 0.2rem rgba(52, 86, 163, 0.25);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #3456a3, #5478c4);
+        border: none;
+        border-radius: 8px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #2a4a8f, #4a6bb3);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(52, 86, 163, 0.3);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+    }
+
+    .alert {
+        border-radius: 8px;
+        font-weight: 500;
+    }
+</style>
+
+<script>
+document.getElementById('contactForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const messageAlert = document.getElementById('messageAlert');
+    
+    // Disable submit button
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+    
+    const contactData = {
+        cardId: parseInt(document.getElementById('cardId').value),
+        name: formData.get('name'),
+        email: formData.get('email'),
+        phone: formData.get('phone') || '',
+        company: formData.get('company') || '',
+        message: formData.get('message')
+    };
+    
+    try {
+        const response = await fetch('/Contact/Submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(contactData)
+        });
+        
+        const result = await response.json();
+        
+        messageAlert.style.display = 'block';
+        if (result.success) {
+            messageAlert.className = 'alert alert-success';
+            messageAlert.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + result.message;
+            this.reset();
+        } else {
+            messageAlert.className = 'alert alert-danger';
+            messageAlert.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>' + result.message;
+        }
+    } catch (error) {
+        messageAlert.style.display = 'block';
+        messageAlert.className = 'alert alert-danger';
+        messageAlert.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>An error occurred. Please try again.';
+    } finally {
+        // Re-enable submit button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Send Message';
+    }
+});
+</script>

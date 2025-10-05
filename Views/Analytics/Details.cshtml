@@ -1,0 +1,266 @@
+@model AnalyticsDashboardViewModel
+@{
+    ViewData["Title"] = "Card Analytics Details";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-chart-line text-primary me-2"></i>Card Analytics Details</h2>
+                    <p class="text-muted">Detailed analytics for your visiting card</p>
+                </div>
+                <div>
+                    <a asp-action="Dashboard" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Card Overview -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-id-card me-2"></i>Card Information</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="card-title">@Model.CardName</h6>
+                    <p class="card-text text-muted">@Model.Company</p>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="text-primary mb-0">@Model.TotalViews</h4>
+                                <small class="text-muted">Total Views</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success mb-0">@Model.ViewsToday</h4>
+                            <small class="text-muted">Today</small>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar me-1"></i>
+                            Created: @Model.CreatedAt.ToString("MMM dd, yyyy")
+                        </small>
+                        <br>
+                        <small class="text-muted">
+                            <i class="fas fa-eye me-1"></i>
+                            Last Viewed: @(Model.LastViewed?.ToString("MMM dd, yyyy") ?? "Never")
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Charts -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-area me-2"></i>Views Trend (Last 30 Days)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="viewsChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Geographic Distribution -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-globe me-2"></i>Geographic Distribution</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.TopCountries?.Any() == true)
+                    {
+                        @foreach (var location in Model.TopCountries.Take(10))
+                        {
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                    <span>@location.Country</span>
+                                </div>
+                                <span class="badge bg-primary">@location.Count</span>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No geographic data available yet
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Device & Browser Statistics -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-mobile-alt me-2"></i>Device & Browser</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <h6 class="text-muted mb-3">Device Types</h6>
+                            @if (Model.DeviceDistribution?.Any() == true)
+                            {
+                                @foreach (var device in Model.DeviceDistribution)
+                                {
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>@device.DeviceType</span>
+                                        <span class="badge bg-secondary">@device.Count</span>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <p class="text-muted small">No data available</p>
+                            }
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-muted mb-3">Browsers</h6>
+                            @if (Model.BrowserDistribution?.Any() == true)
+                            {
+                                @foreach (var browser in Model.BrowserDistribution.Take(5))
+                                {
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>@browser.Browser</span>
+                                        <span class="badge bg-secondary">@browser.Count</span>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <p class="text-muted small">No data available</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Views -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Views</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentViews?.Any() == true)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Location</th>
+                                        <th>Device</th>
+                                        <th>Browser</th>
+                                        <th>IP Address</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var view in Model.RecentViews.Take(20))
+                                    {
+                                        <tr>
+                                            <td>@view.ViewedAt.ToString("MMM dd, yyyy HH:mm")</td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(view.Country))
+                                                {
+                                                    <i class="fas fa-flag me-1"></i>
+                                                    <span>@view.Country</span>
+                                                    @if (!string.IsNullOrEmpty(view.City))
+                                                    {
+                                                        <small class="text-muted">, @view.City</small>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Unknown</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(view.DeviceType))
+                                                {
+                                                    <i class="fas fa-@(view.DeviceType.ToLower() == "mobile" ? "mobile-alt" : view.DeviceType.ToLower() == "tablet" ? "tablet-alt" : "desktop") me-1"></i>
+                                                    <span>@view.DeviceType</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Unknown</span>
+                                                }
+                                            </td>
+                                            <td>@(view.Browser ?? "Unknown")</td>
+                                            <td>
+                                                <small class="text-muted font-monospace">@view.ViewerIP</small>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-chart-line text-muted mb-3" style="font-size: 3rem;"></i>
+                            <h5 class="text-muted">No Views Yet</h5>
+                            <p class="text-muted">Once people start viewing your card, analytics will appear here.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Views Trend Chart
+        const ctx = document.getElementById('viewsChart').getContext('2d');
+        const viewsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.ViewsTrend?.Select(v => v.Date.ToString("MMM dd")) ?? new List<string>())),
+                datasets: [{
+                    label: 'Views',
+                    data: @Html.Raw(Json.Serialize(Model.ViewsTrend?.Select(v => v.Views) ?? new List<int>())),
+                    borderColor: '#3456a3',
+                    backgroundColor: 'rgba(52, 86, 163, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

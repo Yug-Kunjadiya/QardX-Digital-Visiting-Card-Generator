@@ -1,0 +1,255 @@
+﻿@model CustomTemplate
+@{
+    ViewData["Title"] = "Template Builder";
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Controls Panel -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-paint-brush me-2"></i>Template Builder</h5>
+                    <a href="/TemplateBuilder" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-arrow-left me-2"></i>Back
+                    </a>
+                </div>
+                <div class="card-body">
+                    <!-- Template Name -->
+                    <div class="mb-3">
+                        <label class="form-label">Template Name</label>
+                        <input type="text" class="form-control" id="templateName" value="@Model.TemplateName">
+                    </div>
+
+                    <!-- HTML Content -->
+                    <div class="mb-3">
+                        <label class="form-label">HTML Content</label>
+                        <textarea class="form-control font-monospace" id="htmlContent" rows="15" placeholder="Enter your HTML template code here...">@Model.HtmlContent</textarea>
+                        <div class="form-text">Use placeholders like {{Name}}, {{Email}}, {{Phone}}, {{JobTitle}}, {{Company}}, {{Website}}, {{LinkedIn}}, {{Twitter}}, {{Instagram}}</div>
+                    </div>
+
+                    <!-- CSS Styles -->
+                    <div class="mb-3">
+                        <label class="form-label">CSS Styles</label>
+                        <textarea class="form-control font-monospace" id="cssContent" rows="15" placeholder="Enter your CSS styles here...">@Model.CssContent</textarea>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary" id="previewBtn">
+                            <i class="fas fa-eye me-2"></i>Update Preview
+                        </button>
+                        <button type="button" class="btn btn-success" id="saveBtn">
+                            <i class="fas fa-save me-2"></i>Save Template
+                        </button>
+                        <button type="button" class="btn btn-info" id="resetBtn">
+                            <i class="fas fa-undo me-2"></i>Reset to Default
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Preview Panel -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-eye me-2"></i>Live Preview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="border rounded p-3" style="min-height: 400px; background: #f8f9fa;">
+                        <div id="previewArea">
+                            <div class="text-center text-muted">
+                                <i class="fas fa-eye fa-2x mb-3"></i>
+                                <p>Click "Update Preview" to see your template</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Tips -->
+                    <div class="mt-3">
+                        <h6 class="text-primary">Quick Tips:</h6>
+                        <ul class="small text-muted mb-0">
+                            <li>Use {{placeholders}} in HTML for dynamic content</li>
+                            <li>Bootstrap classes are available</li>
+                            <li>FontAwesome icons are supported</li>
+                            <li>Preview updates in real-time</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+$(document).ready(function() {
+    // Auto-update preview as user types (with debounce)
+    let previewTimeout;
+    $('#htmlContent, #cssContent').on('input', function() {
+        clearTimeout(previewTimeout);
+        previewTimeout = setTimeout(updatePreview, 1000);
+    });
+
+    // Manual preview update
+    $('#previewBtn').click(function() {
+        updatePreview();
+    });
+
+    // Save template
+    $('#saveBtn').click(function() {
+        saveTemplate();
+    });
+
+    // Reset to default
+    $('#resetBtn').click(function() {
+        if (confirm('Are you sure you want to reset to default template? This will lose all your changes.')) {
+            resetToDefault();
+        }
+    });
+
+    // Initial preview
+    updatePreview();
+
+    function updatePreview() {
+        const htmlContent = $('#htmlContent').val();
+        const cssContent = $('#cssContent').val();
+
+        $.ajax({
+            url: '/TemplateBuilder/Preview',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                HtmlContent: htmlContent,
+                CssContent: cssContent,
+                SampleData: ''
+            }),
+            success: function(response) {
+                if (response.success) {
+                    $('#previewArea').html(response.html);
+                } else {
+                    $('#previewArea').html('<div class="alert alert-danger">Preview Error: ' + (response.message || 'Unknown error') + '</div>');
+                }
+            },
+            error: function() {
+                $('#previewArea').html('<div class="alert alert-danger">Failed to update preview</div>');
+            }
+        });
+    }
+
+    function saveTemplate() {
+        const template = {
+            TemplateName: $('#templateName').val(),
+            HtmlContent: $('#htmlContent').val(),
+            CssContent: $('#cssContent').val()
+        };
+
+        $('#saveBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Saving...');
+
+        $.ajax({
+            url: '/TemplateBuilder/Save',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(template),
+            success: function(response) {
+                if (response.success) {
+                    alert('Template saved successfully!');
+                } else {
+                    alert('Failed to save template: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Failed to save template. Please try again.');
+            },
+            complete: function() {
+                $('#saveBtn').prop('disabled', false).html('<i class="fas fa-save me-2"></i>Save Template');
+            }
+        });
+    }
+
+    function resetToDefault() {
+        $('#templateName').val('My Custom Template');
+        $('#htmlContent').val(`<div class="card-template">
+    <div class="header">
+        <h2 class="name">{{Name}}</h2>
+        <p class="title">{{JobTitle}}</p>
+        <p class="company">{{Company}}</p>
+    </div>
+    <div class="content">
+        <div class="contact-info">
+            <p><i class="fas fa-envelope"></i> {{Email}}</p>
+            <p><i class="fas fa-phone"></i> {{Phone}}</p>
+            <p><i class="fas fa-globe"></i> {{Website}}</p>
+        </div>
+        <div class="social-links">
+            <p><i class="fab fa-linkedin"></i> {{LinkedIn}}</p>
+            <p><i class="fab fa-twitter"></i> {{Twitter}}</p>
+            <p><i class="fab fa-instagram"></i> {{Instagram}}</p>
+        </div>
+    </div>
+</div>`);
+        $('#cssContent').val(`.card-template {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    font-family: 'Segoe UI', sans-serif;
+    max-width: 400px;
+    margin: 0 auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 25px;
+    border-bottom: 2px solid rgba(255,255,255,0.3);
+    padding-bottom: 20px;
+}
+
+.name {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0 0 10px 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.title {
+    font-size: 16px;
+    margin: 5px 0;
+    opacity: 0.9;
+}
+
+.company {
+    font-size: 14px;
+    margin: 5px 0;
+    opacity: 0.8;
+}
+
+.content {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.contact-info, .social-links {
+    flex: 1;
+}
+
+.contact-info p, .social-links p {
+    margin: 8px 0;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.contact-info i, .social-links i {
+    width: 16px;
+    text-align: center;
+}`);
+        updatePreview();
+    }
+});
+</script>
+}

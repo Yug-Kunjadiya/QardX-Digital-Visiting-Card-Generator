@@ -1,0 +1,170 @@
+@model VisitingCardViewModel
+@{
+    ViewData["Title"] = "Edit Visiting Card";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4>Edit Visiting Card</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post" id="cardForm">
+                    <input asp-for="CardId" type="hidden" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" class="form-control" value="@Model.FullName" readonly />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" value="@Model.Email" readonly />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Phone" class="form-label"></label>
+                                <input asp-for="Phone" class="form-control" id="phone" />
+                                <span asp-validation-for="Phone" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Company" class="form-label"></label>
+                                <input asp-for="Company" class="form-control" id="company" />
+                                <span asp-validation-for="Company" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="LinkedIn" class="form-label"></label>
+                        <input asp-for="LinkedIn" class="form-control" id="linkedin" placeholder="https://linkedin.com/in/your-profile" />
+                        <span asp-validation-for="LinkedIn" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Address" class="form-label"></label>
+                        <textarea asp-for="Address" class="form-control" rows="3" id="address"></textarea>
+                        <span asp-validation-for="Address" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="TemplateId" class="form-label"></label>
+                        <select asp-for="TemplateId" class="form-select" id="templateSelect">
+                            <option value="">Select a template</option>
+                            @foreach (var template in ViewBag.Templates as List<Template>)
+                            {
+                                <option value="@template.TemplateId" selected="@(template.TemplateId == Model.TemplateId)">@template.TemplateName</option>
+                            }
+                        </select>
+                        <span asp-validation-for="TemplateId" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Update Visiting Card</button>
+                        <a asp-action="Preview" asp-route-id="@Model.CardId" class="btn btn-outline-success">Preview</a>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Live Preview</h5>
+            </div>
+            <div class="card-body">
+                <div id="cardPreview" class="card-preview">
+                    <!-- Preview will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function() {
+            // Initial preview
+            updatePreview();
+            
+            // Update preview when fields change
+            $('#templateSelect, #phone, #company, #linkedin, #address').on('change keyup', function() {
+                updatePreview();
+            });
+            
+            function updatePreview() {
+                var templateId = $('#templateSelect').val();
+                var phone = $('#phone').val();
+                var company = $('#company').val();
+                var linkedin = $('#linkedin').val();
+                var address = $('#address').val();
+                var fullName = '@Model.FullName';
+                var email = '@Model.Email';
+                
+                if (templateId) {
+                    var previewHtml = generatePreview(templateId, fullName, email, phone, company, linkedin, address);
+                    $('#cardPreview').html(previewHtml);
+                } else {
+                    $('#cardPreview').html('<div class="preview-placeholder"><i class="fas fa-id-card fa-3x text-muted"></i><p class="text-muted mt-2">Select a template to preview</p></div>');
+                }
+            }
+            
+            function generatePreview(templateId, fullName, email, phone, company, linkedin, address) {
+                switch(templateId) {
+                    case '1': // Classic Blue
+                        return `<div class="classic-blue-template p-3">
+                            <h5 class="text-white">${fullName}</h5>
+                            <p class="text-white-50">${company}</p>
+                            <hr class="text-white">
+                            <small class="text-white">
+                                📧 ${email}<br>
+                                📞 ${phone}<br>
+                                ${linkedin ? '🔗 LinkedIn<br>' : ''}
+                                📍 ${address}
+                            </small>
+                        </div>`;
+                    case '2': // Minimal White
+                        return `<div class="minimal-white-template p-3">
+                            <h5 class="text-dark">${fullName}</h5>
+                            <p class="text-muted">${company}</p>
+                            <hr>
+                            <small class="text-dark">
+                                📧 ${email}<br>
+                                📞 ${phone}<br>
+                                ${linkedin ? '🔗 LinkedIn<br>' : ''}
+                                📍 ${address}
+                            </small>
+                        </div>`;
+                    case '3': // Modern Dark
+                        return `<div class="modern-dark-template p-3">
+                            <h5 class="text-warning">${fullName}</h5>
+                            <p class="text-light">${company}</p>
+                            <hr class="text-warning">
+                            <small class="text-light">
+                                📧 ${email}<br>
+                                📞 ${phone}<br>
+                                ${linkedin ? '🔗 LinkedIn<br>' : ''}
+                                📍 ${address}
+                            </small>
+                        </div>`;
+                    default:
+                        return '<div class="preview-placeholder"><i class="fas fa-id-card fa-3x text-muted"></i><p class="text-muted mt-2">Select a template to preview</p></div>';
+                }
+            }
+        });
+    </script>
+}

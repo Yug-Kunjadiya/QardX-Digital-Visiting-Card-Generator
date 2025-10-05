@@ -1,0 +1,300 @@
+@model IEnumerable<VisitingCard>
+@{
+    ViewData["Title"] = "Batch QR Codes";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-layer-group text-primary me-2"></i>Batch QR Codes</h2>
+                    <p class="text-muted">Generate QR codes for multiple cards at once</p>
+                </div>
+                <div>
+                    <a asp-controller="Card" asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Cards
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Select Cards for Batch QR Generation</h5>
+                            <div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectAll()">
+                                    <i class="fas fa-check-square me-1"></i>Select All
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearAll()">
+                                    <i class="fas fa-square me-1"></i>Clear All
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="generateBatchQR()" id="generateBtn" disabled>
+                                    <i class="fas fa-qrcode me-1"></i>Generate QR Codes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row" id="cardsContainer">
+                            @foreach (var card in Model)
+                            {
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card h-100 card-selectable" data-card-id="@card.CardId">
+                                        <div class="card-body">
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input card-checkbox" type="checkbox" value="@card.CardId" id="card-@card.CardId">
+                                                <label class="form-check-label fw-bold" for="card-@card.CardId">
+                                                    @card.FirstName @card.LastName
+                                                </label>
+                                            </div>
+                                            <p class="card-text">
+                                                <small class="text-muted">@card.Company</small><br>
+                                                <small class="text-muted">@card.JobTitle</small>
+                                            </p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-eye me-1"></i>@card.ViewCount views
+                                                </small>
+                                                <small class="text-muted">
+                                                    Created: @card.CreatedAt.ToString("MMM dd, yyyy")
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">QR Code Options</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="qrSize" class="form-label">QR Code Size</label>
+                                    <select class="form-select" id="qrSize">
+                                        <option value="200">Small (200x200)</option>
+                                        <option value="300" selected>Medium (300x300)</option>
+                                        <option value="500">Large (500x500)</option>
+                                        <option value="800">Extra Large (800x800)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="outputFormat" class="form-label">Output Format</label>
+                                    <select class="form-select" id="outputFormat">
+                                        <option value="png">PNG Images</option>
+                                        <option value="pdf">PDF Document</option>
+                                        <option value="zip">ZIP Archive</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="includeCardInfo" checked>
+                                    <label class="form-check-label" for="includeCardInfo">
+                                        Include card information with QR codes
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="includeLabels" checked>
+                                    <label class="form-check-label" for="includeLabels">
+                                        Include name labels
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-layer-group text-muted mb-3" style="font-size: 4rem;"></i>
+                    <h4 class="text-muted">No Cards Available</h4>
+                    <p class="text-muted">Create some visiting cards first to generate batch QR codes.</p>
+                    <a asp-controller="Card" asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Create Your First Card
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5>Generating QR Codes...</h5>
+                <p class="text-muted">Please wait while we process your request.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let selectedCards = [];
+
+        // Update generate button state
+        function updateGenerateButton() {
+            const generateBtn = document.getElementById('generateBtn');
+            const checkboxes = document.querySelectorAll('.card-checkbox:checked');
+            generateBtn.disabled = checkboxes.length === 0;
+            
+            if (checkboxes.length > 0) {
+                generateBtn.innerHTML = `<i class="fas fa-qrcode me-1"></i>Generate QR Codes (${checkboxes.length})`;
+            } else {
+                generateBtn.innerHTML = `<i class="fas fa-qrcode me-1"></i>Generate QR Codes`;
+            }
+        }
+
+        // Select all cards
+        function selectAll() {
+            document.querySelectorAll('.card-checkbox').forEach(checkbox => {
+                checkbox.checked = true;
+                checkbox.closest('.card').classList.add('border-primary');
+            });
+            updateGenerateButton();
+        }
+
+        // Clear all selections
+        function clearAll() {
+            document.querySelectorAll('.card-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+                checkbox.closest('.card').classList.remove('border-primary');
+            });
+            updateGenerateButton();
+        }
+
+        // Generate batch QR codes
+        function generateBatchQR() {
+            const selectedCardIds = Array.from(document.querySelectorAll('.card-checkbox:checked'))
+                .map(checkbox => checkbox.value);
+
+            if (selectedCardIds.length === 0) {
+                alert('Please select at least one card.');
+                return;
+            }
+
+            const options = {
+                cardIds: selectedCardIds,
+                size: document.getElementById('qrSize').value,
+                format: document.getElementById('outputFormat').value,
+                includeCardInfo: document.getElementById('includeCardInfo').checked,
+                includeLabels: document.getElementById('includeLabels').checked
+            };
+
+            // Show loading modal
+            const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+            loadingModal.show();
+
+            // Make request to generate QR codes
+            fetch('@Url.Action("GenerateBatch", "Batch")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                },
+                body: JSON.stringify(options)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                }
+                throw new Error('Generation failed');
+            })
+            .then(blob => {
+                // Create download link
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `QardX_QR_Codes_${new Date().toISOString().split('T')[0]}.${options.format}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                loadingModal.hide();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                loadingModal.hide();
+                alert('Failed to generate QR codes. Please try again.');
+            });
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click handlers for checkboxes
+            document.querySelectorAll('.card-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const card = this.closest('.card');
+                    if (this.checked) {
+                        card.classList.add('border-primary');
+                    } else {
+                        card.classList.remove('border-primary');
+                    }
+                    updateGenerateButton();
+                });
+            });
+
+            // Add click handlers for cards
+            document.querySelectorAll('.card-selectable').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    if (e.target.type !== 'checkbox') {
+                        const checkbox = this.querySelector('.card-checkbox');
+                        checkbox.checked = !checkbox.checked;
+                        checkbox.dispatchEvent(new Event('change'));
+                    }
+                });
+            });
+        });
+    </script>
+    
+    <style>
+        .card-selectable {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .card-selectable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .card-selectable.border-primary {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(52, 86, 163, 0.2);
+        }
+    </style>
+}
