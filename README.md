@@ -104,7 +104,7 @@ Each card comes with a **unique QR code**, **PDF download**, and **smart sharing
 
    ```json
    "ConnectionStrings": {
-     "DefaultConnection": "Server=YUG-KUNJADIYA\\SQLEXPRESS;Database=QardXDB;Trusted_Connection=True;TrustServerCertificate=True;"
+     "DefaultConnection": "Server=your_server_name ;Database=QardXDB;Trusted_Connection=True;TrustServerCertificate=True;"
    }
    ```
 
@@ -194,8 +194,8 @@ To contribute:
 ## 🧑‍💻 Author
 
 👋 Developed by: Yug Kunjadiya  
-📧 Email: yugkunjadiya@example.com  
-🌐 GitHub: github.com/YOUR-USERNAME
+📧 Email: yugkunjadiy007@gmail.com  
+🌐 GitHub: github.com/Yug-Kunjadiya
 
 ---
 
@@ -209,10 +209,6 @@ Feel free to use and modify it as per your needs.
 ⭐ If you like this project, don't forget to star this repository on GitHub!
 
 ---
-
-yaml
-Copy code
-
 ---
 
 ✅ This README:
